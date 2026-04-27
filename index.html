@@ -1,0 +1,489 @@
+
+<h2 class="sr-only">React Native Interview Flashcards — flip each card to see the answer and code</h2>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+
+  .fc-root { padding: 1rem 0; }
+
+  .progress-bar-wrap { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.25rem; }
+  .progress-bar-fill { height: 4px; background: #1A56DB; border-radius: 2px; transition: width 0.4s ease; }
+
+  .meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .meta-tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); letter-spacing: 0.04em; }
+  .meta-count { font-size: 12px; color: var(--color-text-secondary); }
+
+  .card-scene { perspective: 1200px; width: 100%; min-height: 280px; cursor: pointer; margin-bottom: 1rem; }
+  .card-inner { position: relative; width: 100%; min-height: 280px; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1); }
+  .card-scene.flipped .card-inner { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute; top: 0; left: 0; right: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+    padding: 1.5rem;
+    min-height: 280px;
+  }
+  .card-back { transform: rotateY(180deg); }
+
+  .q-label { font-size: 10px; font-weight: 500; color: #1A56DB; letter-spacing: 0.08em; margin-bottom: 0.75rem; opacity: 0.8; }
+  .q-text { font-size: 17px; font-weight: 500; color: var(--color-text-primary); line-height: 1.5; }
+  .q-hint { font-size: 12px; color: var(--color-text-tertiary); margin-top: 1.5rem; }
+
+  .a-label { font-size: 10px; font-weight: 500; color: #0F766E; letter-spacing: 0.08em; margin-bottom: 0.75rem; opacity: 0.8; }
+  .a-text { font-size: 14px; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 0.75rem; }
+  .a-text ul { padding-left: 1.2rem; }
+  .a-text li { margin-bottom: 4px; }
+
+  .code-block {
+    background: #F1F5F9;
+    border-radius: var(--border-radius-md);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: #1E3A5F;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    margin-top: 0.75rem;
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+
+  .nav { display: flex; gap: 8px; align-items: center; }
+  .nav button { flex: 1; padding: 9px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; transition: background 0.15s; font-family: var(--font-sans); }
+  .nav button:hover { background: var(--color-background-secondary); }
+  .nav button:disabled { opacity: 0.35; cursor: default; }
+  .nav .btn-flip { background: #1A56DB; color: #fff; border-color: #1A56DB; }
+  .nav .btn-flip:hover { background: #1648c0; }
+
+  .dots { display: flex; gap: 6px; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-border-tertiary); cursor: pointer; transition: background 0.2s; }
+  .dot.active { background: #1A56DB; }
+  .dot.seen { background: #0F766E; }
+
+  .badge-wrap { display: flex; gap: 6px; margin-top: 1.25rem; flex-wrap: wrap; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .badge-code { background: #EFF6FF; color: #1648c0; }
+  .badge-arch { background: #F0FDFA; color: #0F766E; }
+  .badge-native { background: #FFF7ED; color: #c2410c; }
+  .badge-hooks { background: #FDF4FF; color: #7e22ce; }
+
+  .keyboard-hint { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-top: 0.75rem; }
+</style>
+
+<div class="fc-root">
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog"></div></div>
+  <div class="meta">
+    <span class="meta-tag" id="cat-tag">CODING</span>
+    <span class="meta-count" id="count-text">1 / 12</span>
+  </div>
+
+  <div class="card-scene" id="card" onclick="flipCard()">
+    <div class="card-inner" id="inner">
+      <div class="card-face card-front" id="front">
+        <div class="q-label">QUESTION</div>
+        <div class="q-text" id="q-text"></div>
+        <div class="badge-wrap" id="badges"></div>
+        <div class="q-hint">tap to reveal answer</div>
+      </div>
+      <div class="card-face card-back" id="back">
+        <div class="a-label">ANSWER</div>
+        <div class="a-text" id="a-text"></div>
+        <div class="code-block" id="a-code" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button onclick="prev()" id="btn-prev">&#8592; prev</button>
+    <button class="btn-flip" onclick="flipCard()" id="btn-flip">flip card</button>
+    <button onclick="next()" id="btn-next">next &#8594;</button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+  <div class="keyboard-hint">← → arrow keys to navigate &nbsp;·&nbsp; space to flip</div>
+</div>
+
+<script>
+const cards = [
+  {
+    cat: "CODING",
+    q: "Implement useContext for language toggle across the app",
+    badges: ["code","hooks"],
+    answer: `Create a LanguageContext with a Provider at the app root. Expose a custom hook so any component can read or change the language without prop drilling.`,
+    code: `// LanguageContext.tsx
+import { createContext, useContext, useState } from 'react';
+
+type Lang = 'en' | 'hi' | 'te';
+interface LangCtx { language: Lang; setLanguage: (l: Lang) => void; }
+
+const LanguageContext = createContext<LangCtx>({
+  language: 'en', setLanguage: () => {},
+});
+
+export const LanguageProvider = ({ children }) => {
+  const [language, setLanguage] = useState<Lang>('en');
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+// Custom hook
+export const useLanguage = () => useContext(LanguageContext);
+
+// Usage in any component
+const { language, setLanguage } = useLanguage();
+const toggle = () =>
+  setLanguage(prev => prev === 'en' ? 'hi' : 'en');`
+  },
+  {
+    cat: "CODING",
+    q: "Build a cache with expiry — return value if fresh, null if expired",
+    badges: ["code","hooks"],
+    answer: `Use a useRef Map to store { value, expiry } pairs. On get(), check Date.now() against the expiry timestamp. Return null if expired so the caller knows to re-fetch.`,
+    code: `export function useCache<T>(ttlMs = 5 * 60 * 1000) {
+  const cache = useRef<Map<string, { value: T; expiry: number }>>(new Map());
+
+  const get = (key: string): T | null => {
+    const entry = cache.current.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiry) {
+      cache.current.delete(key);
+      return null; // expired — caller should re-fetch
+    }
+    return entry.value; // still fresh
+  };
+
+  const set = (key: string, value: T) => {
+    cache.current.set(key, { value, expiry: Date.now() + ttlMs });
+  };
+
+  return { get, set };
+}
+
+// Usage
+const { get, set } = useCache<ApiResponse>(10 * 60 * 1000);
+const data = get(url) ?? await fetchAndCache(url, set);`
+  },
+  {
+    cat: "CODING",
+    q: "Custom state hook that returns previous value and a hasChanged boolean",
+    badges: ["code","hooks"],
+    answer: `Store the previous value in a useRef (doesn't trigger re-renders). Track hasChanged with another ref. Update both before calling setState.`,
+    code: `export function useStateWithHistory<T>(initial: T) {
+  const [value, setValueInternal] = useState<T>(initial);
+  const prevRef = useRef<T | undefined>(undefined);
+  const hasChangedRef = useRef(false);
+
+  const setValue = useCallback((next: T) => {
+    prevRef.current = value;
+    hasChangedRef.current = next !== value;
+    setValueInternal(next);
+  }, [value]);
+
+  return {
+    value,
+    prevValue: prevRef.current,
+    hasChanged: hasChangedRef.current,
+    setValue,
+  };
+}
+
+// After setValue('hello') when initial was '':
+// value      => 'hello'
+// prevValue  => ''
+// hasChanged => true`
+  },
+  {
+    cat: "CODING",
+    q: "FlatList that fetches the next page when the user hits the last item",
+    badges: ["code"],
+    answer: `Use FlatList's onEndReached + onEndReachedThreshold. Track page number in state. Guard with a loading flag so multiple calls don't fire at once.`,
+    code: `export function usePaginatedList<T>(fetchFn: (page: number) => Promise<T[]>) {
+  const [data, setData] = useState<T[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const items = await fetchFn(page);
+      if (!items.length) { setHasMore(false); return; }
+      setData(prev => [...prev, ...items]);
+      setPage(p => p + 1);
+    } finally { setLoading(false); }
+  }, [loading, hasMore, page, fetchFn]);
+
+  return { data, loading, loadMore };
+}
+
+// In component:
+<FlatList
+  data={data}
+  onEndReached={loadMore}
+  onEndReachedThreshold={0.2}
+  ListFooterComponent={loading ? <ActivityIndicator /> : null}
+/>`
+  },
+  {
+    cat: "CODING",
+    q: "Implement search debounce — Lodash version and a plain hook version",
+    badges: ["code"],
+    answer: `Lodash: wrap the search callback in useMemo with debounce(). Plain hook: useEffect with setTimeout that clears on every new value — only fires when user pauses.`,
+    code: `// Lodash version (as used in Apollo lab test search)
+import debounce from 'lodash/debounce';
+const debouncedSearch = useMemo(
+  () => debounce(onSearch, 400),
+  [onSearch]
+);
+
+// Plain hook — no library needed
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState<T>(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer); // clears on each keystroke
+  }, [value, delay]);
+  return debounced;
+}
+
+// Usage
+const debouncedQuery = useDebounce(searchText, 400);
+useEffect(() => {
+  if (debouncedQuery) fetchResults(debouncedQuery);
+}, [debouncedQuery]);`
+  },
+  {
+    cat: "CUSTOM HOOKS",
+    q: "What is a custom hook and why do we use them?",
+    badges: ["hooks"],
+    answer: `A custom hook is a JS function starting with "use" that calls other hooks inside it. It lets you extract and reuse stateful logic between components without changing the component tree. Rules: only call hooks at the top level, only from React functions.`,
+    code: `// Pattern: extract logic → name it → reuse anywhere
+export function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(url)
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setData(d); })
+      .catch(e => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [url]);
+
+  return { data, loading, error };
+}`
+  },
+  {
+    cat: "ARCHITECTURE",
+    q: "How is the New Architecture different from the Old? What does Fabric do?",
+    badges: ["arch"],
+    answer: `Old: JS and Native ran on separate threads, communicating via an async JSON Bridge — no sync calls possible.\n\nNew Architecture has 3 pillars:\n• JSI (JavaScript Interface) — C++ layer replacing the bridge, allows sync native calls\n• Fabric — new UI renderer, shadow tree is a shared C++ object (no serialization)\n• TurboModules — native modules loaded lazily via JSI\n\nFabric impact: JS can read layout values synchronously, enabling concurrent features (useTransition, Suspense) and smoother animations.`,
+    code: `// Old — everything async through bridge
+NativeModules.MyModule.doSomething(args, callback);
+
+// New (JSI) — can call synchronously
+// Native object is directly referenceable from JS
+// No JSON serialization overhead
+
+// Fabric: shadow tree is now C++ shared memory
+// React's concurrent scheduler can interrupt
+// and resume UI work — just like the web`
+  },
+  {
+    cat: "NATIVE",
+    q: "How are permissions managed differently on Android vs iOS?",
+    badges: ["native"],
+    answer: `Android: declare in AndroidManifest.xml. Dangerous permissions (camera, location, contacts) need runtime request via PermissionsAndroid.request(). Normal permissions auto-granted at install.\n\niOS: all permissions must be declared in Info.plist with a usage string or App Store rejects the app. Request at runtime — user must go to Settings to re-enable if blocked.`,
+    code: `import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+
+const result = await request(
+  Platform.OS === 'ios'
+    ? PERMISSIONS.IOS.CAMERA
+    : PERMISSIONS.ANDROID.CAMERA
+);
+
+if (result === RESULTS.GRANTED) {
+  // proceed
+} else if (result === RESULTS.BLOCKED) {
+  Linking.openSettings(); // user must go to Settings
+}`
+  },
+  {
+    cat: "NATIVE",
+    q: "How does push notification flow work on Android vs iOS?",
+    badges: ["native"],
+    answer: `Android uses FCM (Firebase Cloud Messaging).\niOS uses APNs (Apple Push Notification service) — FCM can proxy to APNs.\n\nFlow: app registers → gets FCM token → sends token to backend → backend calls FCM API → FCM delivers to device.\n\nIn RN: onMessage() for foreground, setBackgroundMessageHandler() for background/killed state.`,
+    code: `import messaging from '@react-native-firebase/messaging';
+
+// 1. Get device token
+const token = await messaging().getToken();
+sendToBackend(token);
+
+// 2. Foreground — you handle the display
+messaging().onMessage(async msg => {
+  showLocalNotification(msg.notification);
+});
+
+// 3. Background/killed — runs outside component
+// Place in index.js
+messaging().setBackgroundMessageHandler(async msg => {
+  console.log('Background message', msg);
+});`
+  },
+  {
+    cat: "DEBUGGING",
+    q: "Bug works locally but crashes on device — why? (Hermes + stale closure)",
+    badges: ["arch","native"],
+    answer: `Local/debug builds use JavaScriptCore. Release builds on Android use Hermes which runs Promise microtasks faster. If a callback closes over a Redux value via direct variable capture, Hermes can execute it before React re-renders — the closure sees a stale value.\n\nFix: use useRef to always read the latest value inside async callbacks.`,
+    code: `// PROBLEM — stale closure in Hermes release build
+const configUrl = useSelector(state => state.config.url);
+useEffect(() => {
+  verifyOtp(otp).then(() => {
+    callApi(configUrl); // stale! Hermes ran this before re-render
+  });
+}, [otp]);
+
+// FIX — useRef always holds the latest value
+const configUrlRef = useRef(configUrl);
+useEffect(() => {
+  configUrlRef.current = configUrl;
+}, [configUrl]);
+
+useEffect(() => {
+  verifyOtp(otp).then(() => {
+    callApi(configUrlRef.current); // always fresh
+  });
+}, [otp]);`
+  },
+  {
+    cat: "DEBUGGING",
+    q: "How do you identify if a bug is in native code vs JS code?",
+    badges: ["native","arch"],
+    answer: `JS bug signs:\n• Reproduces on both iOS and Android\n• Visible in Metro console or Red Box\n• Related to state, rendering, API calls\n\nNative bug signs:\n• Only one platform affected\n• Crash has Obj-C/Swift (iOS) or Java/Kotlin (Android) stack trace\n• Related to camera, Bluetooth, permissions, hardware\n\nTools: Flipper (JS + native logs side by side), Xcode Instruments, Android Studio Profiler.`,
+    code: `// JS error — Red Box with JS stack trace
+TypeError: Cannot read property 'map' of undefined
+  at ProductList (ProductList.tsx:42)
+
+// Native crash — Xcode crash log
+Thread 1: EXC_BAD_ACCESS (SIGSEGV)
+  #0 -[RCTCameraManager startCapture]
+  #1 -[AppDelegate application:didFinishLaunching]
+
+// Flipper: view both JS console + native logs
+// in one unified panel — best first step`
+  },
+  {
+    cat: "NATIVE",
+    q: "AsyncStorage & persistence — how does redux-persist work with it?",
+    badges: ["native"],
+    answer: `AsyncStorage is an unencrypted, async key-value store that persists across app restarts — the RN equivalent of localStorage.\n\nredux-persist uses it as a storage engine: on every state change it serializes your Redux slices to JSON and writes them. On app restart it rehydrates state before the first render.\n\nFor sensitive data use react-native-encrypted-storage (backed by Keychain on iOS, Android Keystore on Android) or encrypt manually with AES before storing.`,
+    code: `// redux-persist setup
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistReducer } from 'redux-persist';
+
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['auth', 'userProfile'], // only persist these
+};
+
+// Secure storage — Apollo encrypt/decrypt pattern
+import CryptoJS from 'crypto-js';
+const encrypted = CryptoJS.AES
+  .encrypt(JSON.stringify(data), authToken).toString();
+await AsyncStorage.setItem('secure_key', encrypted);
+
+// Retrieve
+const cipher = await AsyncStorage.getItem('secure_key');
+const decrypted = cipher
+  ? CryptoJS.AES.decrypt(cipher, authToken)
+      .toString(CryptoJS.enc.Utf8)
+  : null;`
+  }
+];
+
+const catColors = { CODING: "#EFF6FF", "CUSTOM HOOKS": "#FDF4FF", ARCHITECTURE: "#F0FDFA", NATIVE: "#FFF7ED", DEBUGGING: "#FEF2F2" };
+const catText = { CODING: "#1648c0", "CUSTOM HOOKS": "#7e22ce", ARCHITECTURE: "#0F766E", NATIVE: "#c2410c", DEBUGGING: "#b91c1c" };
+
+let current = 0;
+let flipped = false;
+let seen = new Set();
+
+function render() {
+  const c = cards[current];
+  document.getElementById('q-text').textContent = c.q;
+  const at = document.getElementById('a-text');
+  at.innerHTML = c.answer.replace(/\n/g, '<br>').replace(/•\s/g, '• ');
+  const ac = document.getElementById('a-code');
+  if (c.code) { ac.textContent = c.code; ac.style.display = 'block'; }
+  else { ac.style.display = 'none'; }
+
+  const tag = document.getElementById('cat-tag');
+  tag.textContent = c.cat;
+  tag.style.background = catColors[c.cat] || '#F1F5F9';
+  tag.style.color = catText[c.cat] || '#333';
+  tag.style.border = '0.5px solid ' + (catText[c.cat] || '#333') + '40';
+
+  document.getElementById('count-text').textContent = (current + 1) + ' / ' + cards.length;
+  document.getElementById('prog').style.width = ((current + 1) / cards.length * 100) + '%';
+
+  const bw = document.getElementById('badges');
+  bw.innerHTML = '';
+  (c.badges || []).forEach(b => {
+    const s = document.createElement('span');
+    s.className = 'badge badge-' + b;
+    s.textContent = b === 'code' ? 'coding' : b === 'arch' ? 'architecture' : b === 'native' ? 'native' : 'hooks';
+    bw.appendChild(s);
+  });
+
+  const card = document.getElementById('card');
+  card.classList.toggle('flipped', flipped);
+
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === cards.length - 1;
+
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  cards.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (seen.has(i) ? ' seen' : ''));
+    d.onclick = () => { goTo(i); };
+    dotsEl.appendChild(d);
+  });
+}
+
+function flipCard() {
+  flipped = !flipped;
+  if (flipped) seen.add(current);
+  document.getElementById('card').classList.toggle('flipped', flipped);
+  render();
+}
+
+function goTo(i) {
+  current = i;
+  flipped = false;
+  render();
+}
+
+function next() { if (current < cards.length - 1) goTo(current + 1); }
+function prev() { if (current > 0) goTo(current - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+});
+
+render();
+</script>
