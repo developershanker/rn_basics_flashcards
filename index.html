@@ -1,110 +1,218 @@
-
-<h2 class="sr-only">React Native Interview Flashcards — flip each card to see the answer and code</h2>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Senior React Native — Interview Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .fc-root { padding: 1rem 0; }
+  :root {
+    --blue: #1A56DB;
+    --blue-dark: #1648c0;
+    --blue-light: #EFF6FF;
+    --teal: #0F766E;
+    --teal-light: #F0FDFA;
+    --dark: #0F172A;
+    --mid: #475569;
+    --muted: #94A3B8;
+    --border: #E2E8F0;
+    --bg: #F8FAFC;
+    --white: #FFFFFF;
+    --code-bg: #1E293B;
+    --code-text: #E2E8F0;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
 
-  .progress-bar-wrap { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.25rem; }
-  .progress-bar-fill { height: 4px; background: #1A56DB; border-radius: 2px; transition: width 0.4s ease; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
 
-  .meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-  .meta-tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); letter-spacing: 0.04em; }
-  .meta-count { font-size: 12px; color: var(--color-text-secondary); }
+  /* ── Header ── */
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header h1 { font-size: 1.6rem; font-weight: 600; color: var(--dark); letter-spacing: -0.02em; }
+  .header p { font-size: 0.875rem; color: var(--muted); margin-top: 0.4rem; }
 
-  .card-scene { perspective: 1200px; width: 100%; min-height: 280px; cursor: pointer; margin-bottom: 1rem; }
-  .card-inner { position: relative; width: 100%; min-height: 280px; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1); }
-  .card-scene.flipped .card-inner { transform: rotateY(180deg); }
+  /* ── Container ── */
+  .container { width: 100%; max-width: 740px; }
+
+  /* ── Top bar ── */
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .cat-tag {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+    padding: 4px 12px; border-radius: 20px;
+    background: var(--blue-light); color: var(--blue);
+    border: 1px solid #BFDBFE;
+  }
+  .counter { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+  /* ── Progress ── */
+  .progress-wrap { height: 5px; background: var(--border); border-radius: 3px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-fill { height: 5px; background: var(--blue); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ── Card flip ── */
+  .scene { perspective: 1400px; width: 100%; min-height: 360px; cursor: pointer; margin-bottom: 1rem; }
+  .card-inner {
+    position: relative; width: 100%; min-height: 360px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .scene.flipped .card-inner { transform: rotateY(180deg); }
 
   .card-face {
-    position: absolute; top: 0; left: 0; right: 0;
+    position: absolute; inset: 0;
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    border-radius: var(--border-radius-lg);
-    border: 0.5px solid var(--color-border-tertiary);
-    background: var(--color-background-primary);
-    padding: 1.5rem;
-    min-height: 280px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    min-height: 360px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
   }
   .card-back { transform: rotateY(180deg); }
 
-  .q-label { font-size: 10px; font-weight: 500; color: #1A56DB; letter-spacing: 0.08em; margin-bottom: 0.75rem; opacity: 0.8; }
-  .q-text { font-size: 17px; font-weight: 500; color: var(--color-text-primary); line-height: 1.5; }
-  .q-hint { font-size: 12px; color: var(--color-text-tertiary); margin-top: 1.5rem; }
+  /* Front */
+  .q-label { font-size: 0.65rem; font-weight: 600; color: var(--blue); letter-spacing: 0.12em; margin-bottom: 1rem; }
+  .q-text { font-size: 1.25rem; font-weight: 500; color: var(--dark); line-height: 1.5; flex: 1; }
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 1.25rem; }
+  .badge {
+    font-size: 0.65rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+  .badge-code    { background: #EFF6FF; color: #1648c0; border: 1px solid #BFDBFE; }
+  .badge-hooks   { background: #FDF4FF; color: #7e22ce; border: 1px solid #E9D5FF; }
+  .badge-arch    { background: #F0FDFA; color: #0F766E; border: 1px solid #99F6E4; }
+  .badge-native  { background: #FFF7ED; color: #c2410c; border: 1px solid #FED7AA; }
+  .q-hint { font-size: 0.75rem; color: var(--muted); margin-top: 1.5rem; }
 
-  .a-label { font-size: 10px; font-weight: 500; color: #0F766E; letter-spacing: 0.08em; margin-bottom: 0.75rem; opacity: 0.8; }
-  .a-text { font-size: 14px; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 0.75rem; }
-  .a-text ul { padding-left: 1.2rem; }
-  .a-text li { margin-bottom: 4px; }
+  /* Back */
+  .a-label { font-size: 0.65rem; font-weight: 600; color: var(--teal); letter-spacing: 0.12em; margin-bottom: 0.75rem; }
+  .a-text { font-size: 0.9rem; color: var(--dark); line-height: 1.7; }
+  .a-text br { display: block; margin: 2px 0; }
 
+  .code-wrap { margin-top: 1rem; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid #334155; }
+  .code-label { background: #334155; color: #94A3B8; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; padding: 6px 14px; }
   .code-block {
-    background: #F1F5F9;
-    border-radius: var(--border-radius-md);
-    padding: 0.75rem 1rem;
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    color: #1E3A5F;
-    line-height: 1.6;
-    white-space: pre;
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    padding: 1rem 1.25rem;
     overflow-x: auto;
-    margin-top: 0.75rem;
-    border: 0.5px solid var(--color-border-tertiary);
+    white-space: pre;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .code-block::-webkit-scrollbar { width: 4px; height: 4px; }
+  .code-block::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+
+  /* ── Nav ── */
+  .nav { display: flex; gap: 10px; align-items: center; }
+  .nav button {
+    flex: 1; padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--dark);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav button:hover:not(:disabled) { background: var(--bg); border-color: #CBD5E1; }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .btn-flip { background: var(--blue) !important; color: #fff !important; border-color: var(--blue) !important; }
+  .btn-flip:hover:not(:disabled) { background: var(--blue-dark) !important; }
+
+  /* ── Dots ── */
+  .dots { display: flex; gap: 7px; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .dot:hover { transform: scale(1.3); }
+  .dot.active { background: var(--blue); transform: scale(1.2); }
+  .dot.seen { background: var(--teal); }
+
+  /* ── Keyboard hint ── */
+  .kb-hint { text-align: center; margin-top: 1rem; font-size: 0.72rem; color: var(--muted); }
+  .kb-hint kbd {
+    display: inline-block;
+    padding: 1px 6px; border-radius: 4px;
+    background: var(--white); border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif; font-size: 0.65rem;
+    color: var(--mid);
   }
 
-  .nav { display: flex; gap: 8px; align-items: center; }
-  .nav button { flex: 1; padding: 9px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; transition: background 0.15s; font-family: var(--font-sans); }
-  .nav button:hover { background: var(--color-background-secondary); }
-  .nav button:disabled { opacity: 0.35; cursor: default; }
-  .nav .btn-flip { background: #1A56DB; color: #fff; border-color: #1A56DB; }
-  .nav .btn-flip:hover { background: #1648c0; }
-
-  .dots { display: flex; gap: 6px; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-border-tertiary); cursor: pointer; transition: background 0.2s; }
-  .dot.active { background: #1A56DB; }
-  .dot.seen { background: #0F766E; }
-
-  .badge-wrap { display: flex; gap: 6px; margin-top: 1.25rem; flex-wrap: wrap; }
-  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
-  .badge-code { background: #EFF6FF; color: #1648c0; }
-  .badge-arch { background: #F0FDFA; color: #0F766E; }
-  .badge-native { background: #FFF7ED; color: #c2410c; }
-  .badge-hooks { background: #FDF4FF; color: #7e22ce; }
-
-  .keyboard-hint { font-size: 11px; color: var(--color-text-tertiary); text-align: center; margin-top: 0.75rem; }
+  /* ── Category colors ── */
+  .cat-CODING    { background: #EFF6FF; color: #1648c0; border-color: #BFDBFE; }
+  .cat-CUSTOM-HOOKS { background: #FDF4FF; color: #7e22ce; border-color: #E9D5FF; }
+  .cat-ARCHITECTURE { background: #F0FDFA; color: #0F766E; border-color: #99F6E4; }
+  .cat-NATIVE    { background: #FFF7ED; color: #c2410c; border-color: #FED7AA; }
+  .cat-DEBUGGING { background: #FEF2F2; color: #b91c1c; border-color: #FECACA; }
 </style>
+</head>
+<body>
 
-<div class="fc-root">
-  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog"></div></div>
-  <div class="meta">
-    <span class="meta-tag" id="cat-tag">CODING</span>
-    <span class="meta-count" id="count-text">1 / 12</span>
+<div class="header">
+  <h1>Senior React Native — Interview Flashcards</h1>
+  <p>12 cards · tap a card or press <strong>Space</strong> to flip · arrow keys to navigate</p>
+</div>
+
+<div class="container">
+  <div class="progress-wrap"><div class="progress-fill" id="prog"></div></div>
+  <div class="topbar">
+    <span class="cat-tag" id="cat-tag">CODING</span>
+    <span class="counter" id="counter">1 / 12</span>
   </div>
 
-  <div class="card-scene" id="card" onclick="flipCard()">
+  <div class="scene" id="scene" onclick="flipCard()">
     <div class="card-inner" id="inner">
-      <div class="card-face card-front" id="front">
+
+      <div class="card-face card-front">
         <div class="q-label">QUESTION</div>
         <div class="q-text" id="q-text"></div>
-        <div class="badge-wrap" id="badges"></div>
-        <div class="q-hint">tap to reveal answer</div>
+        <div class="badge-row" id="badges"></div>
+        <div class="q-hint">tap card or press Space to reveal answer →</div>
       </div>
-      <div class="card-face card-back" id="back">
+
+      <div class="card-face card-back">
         <div class="a-label">ANSWER</div>
         <div class="a-text" id="a-text"></div>
-        <div class="code-block" id="a-code" style="display:none"></div>
+        <div class="code-wrap" id="code-wrap">
+          <div class="code-label">CODE</div>
+          <div class="code-block" id="a-code"></div>
+        </div>
       </div>
+
     </div>
   </div>
 
   <div class="nav">
-    <button onclick="prev()" id="btn-prev">&#8592; prev</button>
-    <button class="btn-flip" onclick="flipCard()" id="btn-flip">flip card</button>
-    <button onclick="next()" id="btn-next">next &#8594;</button>
+    <button id="btn-prev" onclick="prev()">← prev</button>
+    <button class="btn-flip" onclick="flipCard()">flip card</button>
+    <button id="btn-next" onclick="next()">next →</button>
   </div>
 
   <div class="dots" id="dots"></div>
-  <div class="keyboard-hint">← → arrow keys to navigate &nbsp;·&nbsp; space to flip</div>
+
+  <div class="kb-hint">
+    <kbd>←</kbd> <kbd>→</kbd> navigate &nbsp;·&nbsp; <kbd>Space</kbd> flip
+  </div>
 </div>
 
 <script>
@@ -113,15 +221,19 @@ const cards = [
     cat: "CODING",
     q: "Implement useContext for language toggle across the app",
     badges: ["code","hooks"],
-    answer: `Create a LanguageContext with a Provider at the app root. Expose a custom hook so any component can read or change the language without prop drilling.`,
+    answer: "Create a LanguageContext with a Provider at the app root. Expose a custom hook so any component can read or change the language without prop drilling.",
     code: `// LanguageContext.tsx
 import { createContext, useContext, useState } from 'react';
 
 type Lang = 'en' | 'hi' | 'te';
-interface LangCtx { language: Lang; setLanguage: (l: Lang) => void; }
+interface LangCtx {
+  language: Lang;
+  setLanguage: (l: Lang) => void;
+}
 
 const LanguageContext = createContext<LangCtx>({
-  language: 'en', setLanguage: () => {},
+  language: 'en',
+  setLanguage: () => {},
 });
 
 export const LanguageProvider = ({ children }) => {
@@ -133,10 +245,10 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
-// Custom hook
+// Custom hook — use anywhere
 export const useLanguage = () => useContext(LanguageContext);
 
-// Usage in any component
+// In any component
 const { language, setLanguage } = useLanguage();
 const toggle = () =>
   setLanguage(prev => prev === 'en' ? 'hi' : 'en');`
@@ -145,9 +257,13 @@ const toggle = () =>
     cat: "CODING",
     q: "Build a cache with expiry — return value if fresh, null if expired",
     badges: ["code","hooks"],
-    answer: `Use a useRef Map to store { value, expiry } pairs. On get(), check Date.now() against the expiry timestamp. Return null if expired so the caller knows to re-fetch.`,
-    code: `export function useCache<T>(ttlMs = 5 * 60 * 1000) {
-  const cache = useRef<Map<string, { value: T; expiry: number }>>(new Map());
+    answer: "Use a useRef Map to store { value, expiry } pairs. On get(), compare Date.now() against the expiry timestamp. Return null if expired so the caller knows to re-fetch.",
+    code: `import { useRef } from 'react';
+
+export function useCache<T>(ttlMs = 5 * 60 * 1000) {
+  const cache = useRef<Map<string, {
+    value: T; expiry: number
+  }>>(new Map());
 
   const get = (key: string): T | null => {
     const entry = cache.current.get(key);
@@ -156,26 +272,37 @@ const toggle = () =>
       cache.current.delete(key);
       return null; // expired — caller should re-fetch
     }
-    return entry.value; // still fresh
+    return entry.value; // still fresh ✓
   };
 
   const set = (key: string, value: T) => {
-    cache.current.set(key, { value, expiry: Date.now() + ttlMs });
+    cache.current.set(key, {
+      value,
+      expiry: Date.now() + ttlMs
+    });
   };
 
   return { get, set };
 }
 
-// Usage
+// Usage — 10 min TTL
 const { get, set } = useCache<ApiResponse>(10 * 60 * 1000);
-const data = get(url) ?? await fetchAndCache(url, set);`
+const fetchData = async (url: string) => {
+  const cached = get(url);
+  if (cached) return cached;
+  const data = await fetch(url).then(r => r.json());
+  set(url, data);
+  return data;
+};`
   },
   {
     cat: "CODING",
     q: "Custom state hook that returns previous value and a hasChanged boolean",
     badges: ["code","hooks"],
-    answer: `Store the previous value in a useRef (doesn't trigger re-renders). Track hasChanged with another ref. Update both before calling setState.`,
-    code: `export function useStateWithHistory<T>(initial: T) {
+    answer: "Store the previous value in a useRef so it doesn't trigger re-renders. Track hasChanged in another ref. Update both synchronously before calling setState.",
+    code: `import { useState, useRef, useCallback } from 'react';
+
+export function useStateWithHistory<T>(initial: T) {
   const [value, setValueInternal] = useState<T>(initial);
   const prevRef = useRef<T | undefined>(undefined);
   const hasChangedRef = useRef(false);
@@ -201,10 +328,15 @@ const data = get(url) ?? await fetchAndCache(url, set);`
   },
   {
     cat: "CODING",
-    q: "FlatList that fetches the next page when the user hits the last item",
+    q: "FlatList that fetches the next page when the user reaches the last item",
     badges: ["code"],
-    answer: `Use FlatList's onEndReached + onEndReachedThreshold. Track page number in state. Guard with a loading flag so multiple calls don't fire at once.`,
-    code: `export function usePaginatedList<T>(fetchFn: (page: number) => Promise<T[]>) {
+    answer: "Use FlatList's onEndReached + onEndReachedThreshold. Track page number in state. Guard with a loading flag so multiple calls don't fire simultaneously.",
+    code: `import { useState, useCallback } from 'react';
+import { FlatList, ActivityIndicator } from 'react-native';
+
+export function usePaginatedList<T>(
+  fetchFn: (page: number) => Promise<T[]>
+) {
   const [data, setData] = useState<T[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -225,6 +357,8 @@ const data = get(url) ?? await fetchAndCache(url, set);`
 }
 
 // In component:
+const { data, loading, loadMore } = usePaginatedList(fetchDoctors);
+
 <FlatList
   data={data}
   onEndReached={loadMore}
@@ -236,26 +370,35 @@ const data = get(url) ?? await fetchAndCache(url, set);`
     cat: "CODING",
     q: "Implement search debounce — Lodash version and a plain hook version",
     badges: ["code"],
-    answer: `Lodash: wrap the search callback in useMemo with debounce(). Plain hook: useEffect with setTimeout that clears on every new value — only fires when user pauses.`,
-    code: `// Lodash version (as used in Apollo lab test search)
+    answer: "Lodash: wrap the search callback in useMemo with debounce(). Plain hook: useEffect with setTimeout that clears on every new value — only fires after the user pauses typing.",
+    code: `// ── Lodash version (used in Apollo lab test search) ──
+import { useMemo } from 'react';
 import debounce from 'lodash/debounce';
+
 const debouncedSearch = useMemo(
   () => debounce(onSearch, 400),
   [onSearch]
 );
 
-// Plain hook — no library needed
+// ── Plain hook — no library needed ──
+import { useState, useEffect } from 'react';
+
 export function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState<T>(value);
+
   useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer); // clears on each keystroke
+    const timer = setTimeout(
+      () => setDebounced(value), delay
+    );
+    return () => clearTimeout(timer); // clear on each keystroke
   }, [value, delay]);
+
   return debounced;
 }
 
 // Usage
 const debouncedQuery = useDebounce(searchText, 400);
+
 useEffect(() => {
   if (debouncedQuery) fetchResults(debouncedQuery);
 }, [debouncedQuery]);`
@@ -264,7 +407,7 @@ useEffect(() => {
     cat: "CUSTOM HOOKS",
     q: "What is a custom hook and why do we use them?",
     badges: ["hooks"],
-    answer: `A custom hook is a JS function starting with "use" that calls other hooks inside it. It lets you extract and reuse stateful logic between components without changing the component tree. Rules: only call hooks at the top level, only from React functions.`,
+    answer: "A custom hook is a JS function starting with 'use' that calls other hooks inside it. It lets you extract and reuse stateful logic between components without changing the component tree.\n\nRules of Hooks still apply: only call hooks at the top level, only from React functions.",
     code: `// Pattern: extract logic → name it → reuse anywhere
 export function useFetch<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
@@ -282,112 +425,161 @@ export function useFetch<T>(url: string) {
   }, [url]);
 
   return { data, loading, error };
-}`
+}
+
+// Instead of copy-pasting fetch logic in every component:
+const { data, loading, error } = useFetch<Doctor[]>('/api/doctors');`
   },
   {
     cat: "ARCHITECTURE",
-    q: "How is the New Architecture different from the Old? What does Fabric do?",
+    q: "How is the New Architecture different from Old? What does Fabric do?",
     badges: ["arch"],
-    answer: `Old: JS and Native ran on separate threads, communicating via an async JSON Bridge — no sync calls possible.\n\nNew Architecture has 3 pillars:\n• JSI (JavaScript Interface) — C++ layer replacing the bridge, allows sync native calls\n• Fabric — new UI renderer, shadow tree is a shared C++ object (no serialization)\n• TurboModules — native modules loaded lazily via JSI\n\nFabric impact: JS can read layout values synchronously, enabling concurrent features (useTransition, Suspense) and smoother animations.`,
-    code: `// Old — everything async through bridge
+    answer: "Old arch: JS and Native ran on separate threads, communicating via an async JSON Bridge. No sync calls possible, all messages serialized and queued.\n\nNew Architecture — 3 pillars:\n• JSI — C++ layer replacing the bridge, enables sync native calls\n• Fabric — new UI renderer, shadow tree is a shared C++ object (no serialization needed)\n• TurboModules — native modules loaded lazily via JSI\n\nFabric impact: JS can read layout values synchronously, enabling Concurrent Mode, useTransition, and smoother animations.",
+    code: `// Old — everything async through Bridge
 NativeModules.MyModule.doSomething(args, callback);
+// ^ JSON serialized → queued → async callback
 
-// New (JSI) — can call synchronously
-// Native object is directly referenceable from JS
+// New (JSI) — direct C++ reference from JS
+// Native object is directly referenceable
 // No JSON serialization overhead
+// Synchronous calls possible when needed
 
-// Fabric: shadow tree is now C++ shared memory
-// React's concurrent scheduler can interrupt
-// and resume UI work — just like the web`
+// TurboModules — lazy loading
+// Before: ALL native modules loaded at startup
+// After:  loaded on first use → faster app start
+
+// Fabric — shared C++ shadow tree
+// React's concurrent scheduler can now
+// interrupt and resume UI work, just like web
+// → enables useTransition, Suspense in RN`
   },
   {
     cat: "NATIVE",
     q: "How are permissions managed differently on Android vs iOS?",
     badges: ["native"],
-    answer: `Android: declare in AndroidManifest.xml. Dangerous permissions (camera, location, contacts) need runtime request via PermissionsAndroid.request(). Normal permissions auto-granted at install.\n\niOS: all permissions must be declared in Info.plist with a usage string or App Store rejects the app. Request at runtime — user must go to Settings to re-enable if blocked.`,
-    code: `import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+    answer: "Android: declare all permissions in AndroidManifest.xml. Dangerous permissions (camera, location, contacts) require runtime request. Normal permissions auto-granted at install. Android 11+ has stricter background location rules.\n\niOS: declare all in Info.plist with a usage description string — App Store rejects without it. Request at runtime. No auto-reset if blocked — user must go to Settings manually.",
+    code: `import { Platform, Linking } from 'react-native';
+import {
+  request, PERMISSIONS, RESULTS
+} from 'react-native-permissions';
 
-const result = await request(
-  Platform.OS === 'ios'
-    ? PERMISSIONS.IOS.CAMERA
-    : PERMISSIONS.ANDROID.CAMERA
-);
+const requestCameraPermission = async () => {
+  const result = await request(
+    Platform.OS === 'ios'
+      ? PERMISSIONS.IOS.CAMERA
+      : PERMISSIONS.ANDROID.CAMERA
+  );
 
-if (result === RESULTS.GRANTED) {
-  // proceed
-} else if (result === RESULTS.BLOCKED) {
-  Linking.openSettings(); // user must go to Settings
-}`
+  if (result === RESULTS.GRANTED) {
+    openCamera();
+  } else if (result === RESULTS.BLOCKED) {
+    // User denied permanently → send to Settings
+    Linking.openSettings();
+  }
+};
+
+// iOS Info.plist (required or App Store rejects):
+// NSCameraUsageDescription → "Used to scan documents"
+
+// Android AndroidManifest.xml:
+// <uses-permission android:name="android.permission.CAMERA"/>`
   },
   {
     cat: "NATIVE",
-    q: "How does push notification flow work on Android vs iOS?",
+    q: "How does the push notification flow work on Android vs iOS?",
     badges: ["native"],
-    answer: `Android uses FCM (Firebase Cloud Messaging).\niOS uses APNs (Apple Push Notification service) — FCM can proxy to APNs.\n\nFlow: app registers → gets FCM token → sends token to backend → backend calls FCM API → FCM delivers to device.\n\nIn RN: onMessage() for foreground, setBackgroundMessageHandler() for background/killed state.`,
+    answer: "Android uses FCM (Firebase Cloud Messaging).\niOS uses APNs (Apple Push Notification service) — FCM can proxy to APNs.\n\nFlow:\n1. App registers → gets FCM device token\n2. Token sent to your backend\n3. Backend calls FCM API with token + payload\n4. FCM delivers to device\n\nIn RN: onMessage() for foreground, setBackgroundMessageHandler() for background/killed.",
     code: `import messaging from '@react-native-firebase/messaging';
 
-// 1. Get device token
-const token = await messaging().getToken();
-sendToBackend(token);
+// 1. Request permission (required iOS, Android 13+)
+await messaging().requestPermission();
 
-// 2. Foreground — you handle the display
-messaging().onMessage(async msg => {
-  showLocalNotification(msg.notification);
+// 2. Get device token
+const token = await messaging().getToken();
+await sendTokenToBackend(token);
+
+// 3. Foreground — you control the display
+messaging().onMessage(async remoteMessage => {
+  showLocalNotification(remoteMessage.notification);
 });
 
-// 3. Background/killed — runs outside component
-// Place in index.js
-messaging().setBackgroundMessageHandler(async msg => {
-  console.log('Background message', msg);
-});`
+// 4. Background/killed — place in index.js
+messaging().setBackgroundMessageHandler(
+  async remoteMessage => {
+    console.log('Background msg:', remoteMessage);
+  }
+);
+
+// 5. App opened from notification
+messaging()
+  .getInitialNotification()
+  .then(remoteMessage => {
+    if (remoteMessage) navigateTo(remoteMessage.data);
+  });`
   },
   {
     cat: "DEBUGGING",
     q: "Bug works locally but crashes on device — why? (Hermes + stale closure)",
     badges: ["arch","native"],
-    answer: `Local/debug builds use JavaScriptCore. Release builds on Android use Hermes which runs Promise microtasks faster. If a callback closes over a Redux value via direct variable capture, Hermes can execute it before React re-renders — the closure sees a stale value.\n\nFix: use useRef to always read the latest value inside async callbacks.`,
+    answer: "Local/debug builds use JavaScriptCore. Release builds on Android use Hermes, which runs Promise microtasks faster and more eagerly.\n\nIf a callback closes over a Redux value via direct variable capture, Hermes can execute it before React re-renders — the closure sees a stale value.\n\nFix: use useRef to always read the latest value inside async callbacks.",
     code: `// PROBLEM — stale closure in Hermes release build
-const configUrl = useSelector(state => state.config.url);
+const configUrl = useSelector(s => s.config.url);
+
 useEffect(() => {
   verifyOtp(otp).then(() => {
-    callApi(configUrl); // stale! Hermes ran this before re-render
+    // Hermes runs this before React re-renders
+    callApi(configUrl); // ❌ stale value!
   });
 }, [otp]);
 
+
 // FIX — useRef always holds the latest value
+const configUrl = useSelector(s => s.config.url);
 const configUrlRef = useRef(configUrl);
+
 useEffect(() => {
-  configUrlRef.current = configUrl;
+  configUrlRef.current = configUrl; // sync ref
 }, [configUrl]);
 
 useEffect(() => {
   verifyOtp(otp).then(() => {
-    callApi(configUrlRef.current); // always fresh
+    callApi(configUrlRef.current); // ✓ always fresh
   });
-}, [otp]);`
+}, [otp]);
+
+// This exact bug happened in Apollo OTP flow!`
   },
   {
     cat: "DEBUGGING",
     q: "How do you identify if a bug is in native code vs JS code?",
     badges: ["native","arch"],
-    answer: `JS bug signs:\n• Reproduces on both iOS and Android\n• Visible in Metro console or Red Box\n• Related to state, rendering, API calls\n\nNative bug signs:\n• Only one platform affected\n• Crash has Obj-C/Swift (iOS) or Java/Kotlin (Android) stack trace\n• Related to camera, Bluetooth, permissions, hardware\n\nTools: Flipper (JS + native logs side by side), Xcode Instruments, Android Studio Profiler.`,
+    answer: "JS bug signs:\n• Reproduces on both iOS AND Android\n• Visible in Metro console / Red Box\n• Related to state, rendering, API calls\n• Has a JS stack trace\n\nNative bug signs:\n• Only ONE platform affected\n• Crash shows Obj-C/Swift (iOS) or Java/Kotlin (Android) frames\n• Related to camera, Bluetooth, permissions, hardware\n\nTools: Flipper (JS + native logs together), Xcode Instruments, Android Studio Profiler.",
     code: `// JS error — Red Box with JS stack trace
 TypeError: Cannot read property 'map' of undefined
   at ProductList (ProductList.tsx:42)
+  at renderWithHooks (ReactFiberHooks.js:...)
 
-// Native crash — Xcode crash log
+// Native iOS crash — Xcode crash log
 Thread 1: EXC_BAD_ACCESS (SIGSEGV)
   #0 -[RCTCameraManager startCapture]
-  #1 -[AppDelegate application:didFinishLaunching]
+  #1 -[MainViewController viewDidLoad]
 
-// Flipper: view both JS console + native logs
-// in one unified panel — best first step`
+// Native Android crash — logcat
+FATAL EXCEPTION: main
+java.lang.NullPointerException
+  at com.app.CameraModule.startCapture(Camera.kt:84)
+
+// Debug approach:
+// 1. Flipper → check JS console + native logs
+// 2. Only one platform? → native issue
+// 3. Both platforms, release only? → Hermes closure
+// 4. Both platforms always? → JS logic bug`
   },
   {
     cat: "NATIVE",
-    q: "AsyncStorage & persistence — how does redux-persist work with it?",
+    q: "AsyncStorage, redux-persist, and secure storage — how do they work?",
     badges: ["native"],
-    answer: `AsyncStorage is an unencrypted, async key-value store that persists across app restarts — the RN equivalent of localStorage.\n\nredux-persist uses it as a storage engine: on every state change it serializes your Redux slices to JSON and writes them. On app restart it rehydrates state before the first render.\n\nFor sensitive data use react-native-encrypted-storage (backed by Keychain on iOS, Android Keystore on Android) or encrypt manually with AES before storing.`,
+    answer: "AsyncStorage: unencrypted, async key-value store persisting across restarts. The RN equivalent of localStorage.\n\nredux-persist: serializes Redux slices to JSON on every state change and rehydrates on app restart.\n\nFor sensitive data: use react-native-encrypted-storage (Keychain on iOS, Android Keystore on Android) OR encrypt manually with AES before writing to AsyncStorage — the Apollo pattern.",
     code: `// redux-persist setup
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistReducer } from 'redux-persist';
@@ -395,70 +587,103 @@ import { persistReducer } from 'redux-persist';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'userProfile'], // only persist these
+  whitelist: ['auth', 'userProfile'], // only these slices
 };
 
-// Secure storage — Apollo encrypt/decrypt pattern
-import CryptoJS from 'crypto-js';
-const encrypted = CryptoJS.AES
-  .encrypt(JSON.stringify(data), authToken).toString();
-await AsyncStorage.setItem('secure_key', encrypted);
+// ── Secure option 1: Encrypted Storage ──
+import EncryptedStorage from 'react-native-encrypted-storage';
+await EncryptedStorage.setItem('auth_token', token);
+const token = await EncryptedStorage.getItem('auth_token');
 
-// Retrieve
+// ── Secure option 2: Apollo encrypt/decrypt pattern ──
+import CryptoJS from 'crypto-js';
+
+const encrypt = (data: string, secret: string) =>
+  CryptoJS.AES.encrypt(data, secret).toString();
+
+const decrypt = (cipher: string, secret: string) =>
+  CryptoJS.AES.decrypt(cipher, secret)
+    .toString(CryptoJS.enc.Utf8);
+
+// Store
+const enc = encrypt(JSON.stringify(sensitiveData), authToken);
+await AsyncStorage.setItem('secure_key', enc);
+
+// Retrieve — fails gracefully if token expired
 const cipher = await AsyncStorage.getItem('secure_key');
-const decrypted = cipher
-  ? CryptoJS.AES.decrypt(cipher, authToken)
-      .toString(CryptoJS.enc.Utf8)
-  : null;`
+const data = cipher ? decrypt(cipher, authToken) : null;`
   }
 ];
 
-const catColors = { CODING: "#EFF6FF", "CUSTOM HOOKS": "#FDF4FF", ARCHITECTURE: "#F0FDFA", NATIVE: "#FFF7ED", DEBUGGING: "#FEF2F2" };
-const catText = { CODING: "#1648c0", "CUSTOM HOOKS": "#7e22ce", ARCHITECTURE: "#0F766E", NATIVE: "#c2410c", DEBUGGING: "#b91c1c" };
+const catClass = {
+  "CODING": "cat-CODING",
+  "CUSTOM HOOKS": "cat-CUSTOM-HOOKS",
+  "ARCHITECTURE": "cat-ARCHITECTURE",
+  "NATIVE": "cat-NATIVE",
+  "DEBUGGING": "cat-DEBUGGING"
+};
 
 let current = 0;
 let flipped = false;
-let seen = new Set();
+const seen = new Set();
 
 function render() {
   const c = cards[current];
-  document.getElementById('q-text').textContent = c.q;
-  const at = document.getElementById('a-text');
-  at.innerHTML = c.answer.replace(/\n/g, '<br>').replace(/•\s/g, '• ');
-  const ac = document.getElementById('a-code');
-  if (c.code) { ac.textContent = c.code; ac.style.display = 'block'; }
-  else { ac.style.display = 'none'; }
 
+  // question
+  document.getElementById('q-text').textContent = c.q;
+
+  // answer
+  const at = document.getElementById('a-text');
+  at.innerHTML = c.answer
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g, '<br>');
+
+  // code
+  const codeWrap = document.getElementById('code-wrap');
+  const codeEl = document.getElementById('a-code');
+  if (c.code) {
+    codeEl.textContent = c.code;
+    codeWrap.style.display = 'block';
+  } else {
+    codeWrap.style.display = 'none';
+  }
+
+  // category tag
   const tag = document.getElementById('cat-tag');
   tag.textContent = c.cat;
-  tag.style.background = catColors[c.cat] || '#F1F5F9';
-  tag.style.color = catText[c.cat] || '#333';
-  tag.style.border = '0.5px solid ' + (catText[c.cat] || '#333') + '40';
+  tag.className = 'cat-tag ' + (catClass[c.cat] || '');
 
-  document.getElementById('count-text').textContent = (current + 1) + ' / ' + cards.length;
+  // counter + progress
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + cards.length;
   document.getElementById('prog').style.width = ((current + 1) / cards.length * 100) + '%';
 
+  // badges
   const bw = document.getElementById('badges');
   bw.innerHTML = '';
   (c.badges || []).forEach(b => {
     const s = document.createElement('span');
     s.className = 'badge badge-' + b;
-    s.textContent = b === 'code' ? 'coding' : b === 'arch' ? 'architecture' : b === 'native' ? 'native' : 'hooks';
+    const labels = { code: 'coding', hooks: 'hooks', arch: 'architecture', native: 'native' };
+    s.textContent = labels[b] || b;
     bw.appendChild(s);
   });
 
-  const card = document.getElementById('card');
-  card.classList.toggle('flipped', flipped);
+  // flip state
+  document.getElementById('scene').classList.toggle('flipped', flipped);
 
+  // buttons
   document.getElementById('btn-prev').disabled = current === 0;
   document.getElementById('btn-next').disabled = current === cards.length - 1;
 
+  // dots
   const dotsEl = document.getElementById('dots');
   dotsEl.innerHTML = '';
   cards.forEach((_, i) => {
     const d = document.createElement('div');
-    d.className = 'dot' + (i === current ? ' active' : (seen.has(i) ? ' seen' : ''));
-    d.onclick = () => { goTo(i); };
+    d.className = 'dot' + (i === current ? ' active' : seen.has(i) ? ' seen' : '');
+    d.title = cards[i].cat;
+    d.onclick = () => goTo(i);
     dotsEl.appendChild(d);
   });
 }
@@ -466,7 +691,6 @@ function render() {
 function flipCard() {
   flipped = !flipped;
   if (flipped) seen.add(current);
-  document.getElementById('card').classList.toggle('flipped', flipped);
   render();
 }
 
@@ -487,3 +711,5 @@ document.addEventListener('keydown', e => {
 
 render();
 </script>
+</body>
+</html>
